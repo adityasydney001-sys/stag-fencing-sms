@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="FenceFlow">
+<title>FenceFlow – SMS Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --green: #1D9E75;
+  --green-dark: #0F6E56;
+  --green-light: #E1F5EE;
+  --green-text: #085041;
+  --amber: #BA7517;
+  --amber-light: #FAEEDA;
+  --amber-text: #633806;
+  --blue: #185FA5;
+  --blue-light: #E6F1FB;
+  --blue-text: #0C447C;
+  --coral: #993C1D;
+  --coral-light: #FAECE7;
+  --coral-text: #712B13;
+  --pink-light: #FBEAF0;
+  --pink-text: #72243E;
+  --gray-light: #F1EFE8;
+  --gray-text: #444441;
+  --bg: #F7F6F2;
+  --surface: #FFFFFF;
+  --border: rgba(0,0,0,0.1);
+  --border-strong: rgba(0,0,0,0.18);
+  --text: #1a1a18;
+  --text-2: #5a5a56;
+  --text-3: #9a9a94;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --sidebar-w: 220px;
+  --font: 'DM Sans', sans-serif;
+  --mono: 'DM Mono', monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; overflow: hidden; background: var(--bg); font-family: var(--font); color: var(--text); font-size: 15px; }
+
+/* ── Layout ── */
+#app { display: flex; height: 100vh; }
+.sidebar { width: var(--sidebar-w); background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; overflow: hidden; }
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+
+/* ── Sidebar ── */
+.brand { padding: 18px 16px 14px; border-bottom: 1px solid var(--border); }
+.brand-name { font-size: 17px; font-weight: 500; letter-spacing: -.3px; }
+.brand-name span { color: var(--green); }
+.brand-sub { font-size: 11px; color: var(--text-3); margin-top: 1px; text-transform: uppercase; letter-spacing: .08em; }
+nav { flex: 1; padding: 8px 0; overflow-y: auto; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 16px; cursor: pointer; font-size: 14px; color: var(--text-2); border-left: 2px solid transparent; transition: all .15s; position: relative; }
+.nav-item:hover { background: var(--bg); color: var(--text); }
+.nav-item.active { background: var(--green-light); color: var(--green-dark); border-left-color: var(--green); font-weight: 500; }
+.nav-icon { width: 16px; height: 16px; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 1.5; }
+.nav-badge { margin-left: auto; background: var(--green); color: #fff; border-radius: 999px; font-size: 11px; padding: 1px 7px; font-weight: 500; }
+.nav-badge.warn { background: var(--amber); }
+.sidebar-footer { padding: 12px; border-top: 1px solid var(--border); }
+.btn-new { width: 100%; padding: 9px; background: var(--green); color: #fff; border: none; border-radius: var(--radius); font-family: var(--font); font-size: 14px; font-weight: 500; cursor: pointer; transition: background .15s; }
+.btn-new:hover { background: var(--green-dark); }
+
+/* ── Topbar ── */
+.topbar { display: flex; align-items: center; justify-content: space-between; padding: 13px 20px; border-bottom: 1px solid var(--border); background: var(--surface); flex-shrink: 0; }
+.topbar-title { font-size: 16px; font-weight: 500; }
+.btn { padding: 7px 14px; border-radius: var(--radius); border: 1px solid var(--border-strong); background: transparent; color: var(--text); font-size: 13px; font-family: var(--font); cursor: pointer; transition: background .15s; }
+.btn:hover { background: var(--bg); }
+.btn-primary { background: var(--green); color: #fff; border-color: var(--green); }
+.btn-primary:hover { background: var(--green-dark); }
+.btn-sm { padding: 5px 11px; font-size: 12px; }
+
+/* ── Content ── */
+.content { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* ── Stats ── */
+.stats-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; padding: 14px 18px; border-bottom: 1px solid var(--border); }
+.stat { background: var(--bg); border-radius: var(--radius); padding: 11px 13px; }
+.stat-label { font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 3px; }
+.stat-val { font-size: 22px; font-weight: 500; }
+.stat-sub { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+
+/* ── Pills ── */
+.pill { display: inline-block; font-size: 11px; font-weight: 500; padding: 2px 9px; border-radius: 999px; }
+.p-new { background: var(--green-light); color: var(--green-text); }
+.p-quote { background: var(--amber-light); color: var(--amber-text); }
+.p-active { background: var(--blue-light); color: var(--blue-text); }
+.p-done { background: #EAF3DE; color: #27500A; }
+.p-follow { background: var(--pink-light); color: var(--pink-text); }
+
+/* ── Conversation list ── */
+.conv-item { display: flex; align-items: flex-start; gap: 11px; padding: 12px 18px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background .1s; }
+.conv-item:hover, .conv-item.selected { background: var(--green-light); }
+.avatar { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; flex-shrink: 0; }
+.av-g { background: var(--green-light); color: var(--green-text); }
+.av-b { background: var(--blue-light); color: var(--blue-text); }
+.av-a { background: var(--amber-light); color: var(--amber-text); }
+.av-c { background: var(--coral-light); color: var(--coral-text); }
+.av-p { background: var(--pink-light); color: var(--pink-text); }
+.conv-body { flex: 1; min-width: 0; }
+.conv-name { font-size: 14px; font-weight: 500; }
+.conv-preview { font-size: 12px; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+.conv-meta { font-size: 11px; color: var(--text-3); flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.unread-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
+
+/* ── Messages panel ── */
+.chat-wrap { display: flex; height: 100%; overflow: hidden; }
+.chat-sidebar { width: 240px; border-right: 1px solid var(--border); overflow-y: auto; flex-shrink: 0; background: var(--surface); }
+.chat-main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.chat-topbar { padding: 11px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; background: var(--surface); flex-shrink: 0; }
+.chat-info { flex: 1; }
+.chat-name { font-size: 15px; font-weight: 500; }
+.chat-detail { font-size: 12px; color: var(--text-3); margin-top: 1px; }
+.tpl-bar { padding: 7px 14px; border-bottom: 1px solid var(--border); display: flex; gap: 6px; flex-wrap: wrap; background: var(--bg); flex-shrink: 0; }
+.tpl-chip { font-size: 12px; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--border-strong); cursor: pointer; color: var(--text-2); background: var(--surface); font-family: var(--font); transition: all .15s; }
+.tpl-chip:hover { background: var(--green-light); color: var(--green-dark); border-color: var(--green); }
+.messages { flex: 1; overflow-y: auto; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; -webkit-overflow-scrolling: touch; }
+.msg-wrap { display: flex; flex-direction: column; }
+.msg { max-width: 78%; padding: 9px 13px; border-radius: 14px; font-size: 14px; line-height: 1.5; word-break: break-word; }
+.msg-in { background: var(--bg); color: var(--text); border-bottom-left-radius: 3px; align-self: flex-start; }
+.msg-out { background: var(--green); color: #fff; border-bottom-right-radius: 3px; align-self: flex-end; }
+.msg-time { font-size: 11px; color: var(--text-3); margin-top: 3px; }
+.msg-time.right { text-align: right; }
+.msg-status { font-size: 11px; margin-top: 2px; text-align: right; }
+.msg-status.sending { color: var(--text-3); }
+.msg-status.sent { color: var(--green); }
+.msg-status.error { color: #E24B4A; }
+.chat-input-area { padding: 10px 14px; border-top: 1px solid var(--border); display: flex; gap: 8px; align-items: flex-end; background: var(--surface); flex-shrink: 0; }
+.chat-textarea { flex: 1; border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 9px 12px; font-size: 14px; font-family: var(--font); resize: none; background: var(--bg); color: var(--text); min-height: 40px; max-height: 100px; outline: none; }
+.chat-textarea:focus { border-color: var(--green); background: var(--surface); }
+.send-btn { padding: 9px 16px; background: var(--green); color: #fff; border: none; border-radius: var(--radius); font-family: var(--font); font-size: 14px; font-weight: 500; cursor: pointer; flex-shrink: 0; transition: background .15s; }
+.send-btn:hover { background: var(--green-dark); }
+.send-btn:disabled { background: var(--text-3); cursor: not-allowed; }
+
+/* ── Leads table ── */
+.leads-wrap { overflow-x: auto; }
+.leads-table { width: 100%; border-collapse: collapse; min-width: 500px; }
+.leads-table th { font-size: 11px; font-weight: 500; color: var(--text-3); text-transform: uppercase; letter-spacing: .06em; text-align: left; padding: 10px 18px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.leads-table td { font-size: 13px; padding: 11px 18px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: middle; }
+.leads-table tr:hover td { background: var(--bg); }
+.lead-name { font-weight: 500; }
+.action-link { color: var(--green); cursor: pointer; font-size: 12px; text-decoration: none; }
+.action-link:hover { text-decoration: underline; }
+
+/* ── Templates ── */
+.tpl-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding: 16px 18px; }
+.tpl-card { border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 15px; cursor: pointer; transition: border-color .15s; background: var(--surface); }
+.tpl-card:hover { border-color: var(--green); }
+.tpl-tag { margin-bottom: 8px; }
+.tpl-body { font-size: 13px; color: var(--text-2); line-height: 1.6; }
+.tpl-actions { display: flex; justify-content: flex-end; gap: 6px; margin-top: 10px; }
+
+/* ── Scheduled ── */
+.sched-list { padding: 0 18px; }
+.sched-item { display: flex; align-items: center; gap: 14px; padding: 13px 0; border-bottom: 1px solid var(--border); }
+.sched-time { font-size: 12px; color: var(--text-3); min-width: 90px; }
+.sched-body { flex: 1; }
+.sched-to { font-size: 13px; font-weight: 500; }
+.sched-msg { font-size: 12px; color: var(--text-2); margin-top: 2px; }
+
+/* ── Settings ── */
+.settings-wrap { max-width: 540px; padding: 20px 18px; }
+.settings-section { margin-bottom: 24px; }
+.settings-heading { font-size: 13px; font-weight: 500; color: var(--text-3); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 12px; }
+.settings-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+.settings-row { display: flex; align-items: center; gap: 12px; padding: 13px 16px; border-bottom: 1px solid var(--border); }
+.settings-row:last-child { border-bottom: none; }
+.settings-label { font-size: 13px; font-weight: 500; min-width: 130px; flex-shrink: 0; }
+.settings-hint { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+.settings-input { flex: 1; border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 7px 10px; font-size: 13px; font-family: var(--font); background: var(--bg); color: var(--text); outline: none; }
+.settings-input:focus { border-color: var(--green); background: var(--surface); }
+.settings-input.mono { font-family: var(--mono); font-size: 12px; }
+.status-banner { display: flex; align-items: center; gap: 10px; padding: 11px 16px; border-radius: var(--radius); font-size: 13px; margin-bottom: 14px; }
+.status-banner.ok { background: var(--green-light); color: var(--green-text); }
+.status-banner.warn { background: var(--amber-light); color: var(--amber-text); }
+.status-banner.err { background: #FCEBEB; color: #791F1F; }
+
+/* ── Compose modal ── */
+.modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
+.modal-bg.open { display: flex; }
+.modal { background: var(--surface); border-radius: var(--radius-lg); padding: 20px; width: 100%; max-width: 380px; }
+.modal-title { font-size: 16px; font-weight: 500; margin-bottom: 14px; }
+.form-row { margin-bottom: 12px; }
+.form-label { font-size: 12px; color: var(--text-2); margin-bottom: 4px; }
+.form-input { width: 100%; border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 8px 10px; font-size: 13px; font-family: var(--font); background: var(--bg); color: var(--text); outline: none; }
+.form-input:focus { border-color: var(--green); background: var(--surface); }
+.form-select { width: 100%; border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 8px 10px; font-size: 13px; font-family: var(--font); background: var(--bg); color: var(--text); outline: none; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+
+/* ── Toast ── */
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1a1a18; color: #fff; padding: 10px 18px; border-radius: 999px; font-size: 13px; z-index: 200; opacity: 0; transition: opacity .2s; pointer-events: none; white-space: nowrap; }
+.toast.show { opacity: 1; }
+
+/* ── Mobile responsive ── */
+@media (max-width: 600px) {
+  .sidebar { width: 60px; }
+  .brand-name, .brand-sub, .nav-item span, .sidebar-footer .btn-new { display: none; }
+  .nav-item { justify-content: center; padding: 14px 0; }
+  .nav-badge { display: none; }
+  .stats-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .chat-sidebar { width: 180px; }
+  .tpl-grid { grid-template-columns: 1fr; }
+  .sidebar-footer { padding: 8px; }
+  .icon-btn { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; background: var(--green); border-radius: 50%; border: none; cursor: pointer; }
+}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="brand">
+      <div class="brand-name">Fence<span>Flow</span></div>
+      <div class="brand-sub">SMS Manager</div>
+    </div>
+    <nav>
+      <div class="nav-item active" onclick="showPanel('dashboard',this)" title="Dashboard">
+        <svg class="nav-icon" viewBox="0 0 16 16"><rect x="1" y="1" width="6" height="6" rx="1.5"/><rect x="9" y="1" width="6" height="6" rx="1.5"/><rect x="1" y="9" width="6" height="6" rx="1.5"/><rect x="9" y="9" width="6" height="6" rx="1.5"/></svg>
+        <span>Dashboard</span>
+      </div>
+      <div class="nav-item" onclick="showPanel('messages',this)" title="Messages">
+        <svg class="nav-icon" viewBox="0 0 16 16"><path d="M2 2h12a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H5l-3 3V3a1 1 0 0 1 1-1z"/></svg>
+        <span>Messages</span>
+        <span class="nav-badge" id="unread-badge">3</span>
+      </div>
+      <div class="nav-item" onclick="showPanel('leads',this)" title="Leads">
+        <svg class="nav-icon" viewBox="0 0 16 16"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg>
+        <span>Leads & Quotes</span>
+      </div>
+      <div class="nav-item" onclick="showPanel('templates',this)" title="Templates">
+        <svg class="nav-icon" viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="1.5"/><path d="M5 6h6M5 9h4"/></svg>
+        <span>Templates</span>
+      </div>
+      <div class="nav-item" onclick="showPanel('scheduled',this)" title="Scheduled">
+        <svg class="nav-icon" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/></svg>
+        <span>Scheduled</span>
+        <span class="nav-badge warn" id="sched-badge">2</span>
+      </div>
+      <div class="nav-item" onclick="showPanel('settings',this)" title="Settings">
+        <svg class="nav-icon" viewBox="0 0 16 16"><circle cx="8" cy="8" r="2.5"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.2 3.2l1.4 1.4M11.4 11.4l1.4 1.4M3.2 12.8l1.4-1.4M11.4 4.6l1.4-1.4"/></svg>
+        <span>Settings</span>
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="btn-new" onclick="openCompose()">+ New Message</button>
+      <button class="icon-btn" onclick="openCompose()" title="New message" style="display:none">
+        <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="1.8"><path d="M8 3v10M3 8h10"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- DASHBOARD -->
+    <div id="panel-dashboard" class="panel active">
+      <div class="topbar"><span class="topbar-title">Overview</span><span style="font-size:13px;color:var(--text-3)" id="today-date"></span></div>
+      <div class="content">
+        <div class="stats-row">
+          <div class="stat"><div class="stat-label">New leads</div><div class="stat-val" id="stat-leads">7</div><div class="stat-sub">+3 this week</div></div>
+          <div class="stat"><div class="stat-label">Quotes sent</div><div class="stat-val">4</div><div class="stat-sub">2 pending reply</div></div>
+          <div class="stat"><div class="stat-label">Unread</div><div class="stat-val" id="stat-unread">3</div><div class="stat-sub">Reply needed</div></div>
+          <div class="stat"><div class="stat-label">Active jobs</div><div class="stat-val">2</div><div class="stat-sub">In progress</div></div>
+        </div>
+        <div style="padding:12px 18px 8px;display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:12px;font-weight:500;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em">Recent conversations</span>
+        </div>
+        <div id="dash-conv-list"></div>
+      </div>
+    </div>
+
+    <!-- MESSAGES -->
+    <div id="panel-messages" class="panel">
+      <div class="chat-wrap" style="height:calc(100vh - 0px)">
+        <div class="chat-sidebar" id="chat-sidebar-list"></div>
+        <div class="chat-main">
+          <div class="chat-topbar">
+            <div class="avatar av-g" id="ch-avatar">SR</div>
+            <div class="chat-info">
+              <div class="chat-name" id="ch-name">Sandra R.</div>
+              <div class="chat-detail" id="ch-detail">0401 234 567 · Colorbond side fence</div>
+            </div>
+            <span class="pill p-new" id="ch-pill">New</span>
+          </div>
+          <div class="tpl-bar" id="tpl-bar-chips"></div>
+          <div class="messages" id="chat-messages"></div>
+          <div class="chat-input-area">
+            <textarea class="chat-textarea" id="chat-input" rows="1" placeholder="Type a message..." oninput="autoResize(this)"></textarea>
+            <button class="send-btn" id="send-btn" onclick="sendSMS()">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LEADS -->
+    <div id="panel-leads" class="panel">
+      <div class="topbar"><span class="topbar-title">Leads & Quotes</span><button class="btn btn-primary btn-sm" onclick="openCompose()">+ Add lead</button></div>
+      <div class="content">
+        <div class="leads-wrap">
+          <table class="leads-table">
+            <thead><tr><th>Name</th><th>Job type</th><th>Quote</th><th>Status</th><th>Last contact</th><th></th></tr></thead>
+            <tbody id="leads-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TEMPLATES -->
+    <div id="panel-templates" class="panel">
+      <div class="topbar"><span class="topbar-title">Message templates</span></div>
+      <div class="content"><div class="tpl-grid" id="tpl-grid"></div></div>
+    </div>
+
+    <!-- SCHEDULED -->
+    <div id="panel-scheduled" class="panel">
+      <div class="topbar"><span class="topbar-title">Scheduled messages</span><button class="btn btn-primary btn-sm" onclick="openCompose()">+ Schedule</button></div>
+      <div class="content" style="padding-top:8px"><div class="sched-list" id="sched-list"></div></div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div id="panel-settings" class="panel">
+      <div class="topbar"><span class="topbar-title">Settings & Twilio</span><button class="btn btn-primary btn-sm" onclick="saveSettings()">Save settings</button></div>
+      <div class="content">
+        <div class="settings-wrap">
+          <div id="twilio-status-banner"></div>
+          <div class="settings-section">
+            <div class="settings-heading">Twilio credentials</div>
+            <div class="settings-card">
+              <div class="settings-row">
+                <div>
+                  <div class="settings-label">Account SID</div>
+                  <div class="settings-hint">From Twilio Console home</div>
+                </div>
+                <input class="settings-input mono" id="s-sid" placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" type="password">
+              </div>
+              <div class="settings-row">
+                <div>
+                  <div class="settings-label">Auth Token</div>
+                  <div class="settings-hint">From Twilio Console home</div>
+                </div>
+                <input class="settings-input mono" id="s-token" placeholder="Your auth token" type="password">
+              </div>
+              <div class="settings-row">
+                <div>
+                  <div class="settings-label">Your Twilio number</div>
+                  <div class="settings-hint">e.g. +61412345678</div>
+                </div>
+                <input class="settings-input mono" id="s-from" placeholder="+61400000000">
+              </div>
+              <div class="settings-row">
+                <div>
+                  <div class="settings-label">Render server URL</div>
+                  <div class="settings-hint">Your deployed backend URL</div>
+                </div>
+                <input class="settings-input mono" id="s-server" placeholder="https://your-app.onrender.com">
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-heading">Business info</div>
+            <div class="settings-card">
+              <div class="settings-row">
+                <div><div class="settings-label">Business name</div></div>
+                <input class="settings-input" id="s-bizname" placeholder="My Fencing Co.">
+              </div>
+              <div class="settings-row">
+                <div><div class="settings-label">Your name</div></div>
+                <input class="settings-input" id="s-yourname" placeholder="e.g. Dave">
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-heading">Test connection</div>
+            <div class="settings-card">
+              <div class="settings-row">
+                <div>
+                  <div class="settings-label">Test number</div>
+                  <div class="settings-hint">Send a test SMS to yourself</div>
+                </div>
+                <input class="settings-input mono" id="s-testnum" placeholder="+61412345678">
+              </div>
+              <div class="settings-row" style="justify-content:flex-end">
+                <button class="btn btn-primary btn-sm" onclick="sendTestSMS()">Send test SMS</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-heading">Setup guide</div>
+            <div class="settings-card">
+              <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:8px">
+                <div style="font-size:13px;color:var(--text-2);line-height:1.7">
+                  <strong>Step 1</strong> — Sign up free at <a href="https://twilio.com" style="color:var(--green)">twilio.com</a> and get your Account SID, Auth Token and a phone number.<br>
+                  <strong>Step 2</strong> — Deploy the backend server (ask for the server file to get copy-paste code for Render.com).<br>
+                  <strong>Step 3</strong> — Paste your credentials above and tap Save. You're live!
+                </div>
+                <div style="font-size:12px;color:var(--text-3)">Cost: ~$3–4/month for 100 SMS messages.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- COMPOSE MODAL -->
+<div class="modal-bg" id="compose-modal">
+  <div class="modal">
+    <div class="modal-title">Compose message</div>
+    <div class="form-row">
+      <div class="form-label">To (name)</div>
+      <input class="form-input" id="m-name" placeholder="Customer name">
+    </div>
+    <div class="form-row">
+      <div class="form-label">Phone number</div>
+      <input class="form-input" id="m-phone" placeholder="+61412345678">
+    </div>
+    <div class="form-row">
+      <div class="form-label">Template (optional)</div>
+      <select class="form-select" id="m-tpl" onchange="applyModalTpl()">
+        <option value="">— choose template —</option>
+        <option value="quote">Quote follow-up</option>
+        <option value="confirm">Job confirmation</option>
+        <option value="remind">Appointment reminder</option>
+        <option value="complete">Job complete / review request</option>
+        <option value="newlead">New lead reply</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-label">Message</div>
+      <textarea class="form-input" id="m-msg" rows="4" style="resize:vertical" placeholder="Type your message..."></textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-label">Send time</div>
+      <select class="form-select" id="m-time">
+        <option>Send now</option>
+        <option>In 1 hour</option>
+        <option>Tomorrow 9 AM</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeCompose()">Cancel</button>
+      <button class="btn btn-primary" onclick="composeAndSend()">Send</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Data ──
+const contacts = [
+  { id:0, initials:'SR', av:'av-g', name:'Sandra R.', phone:'0401 234 567', status:'New', pill:'p-new', job:'Colorbond side fence', unread:true,
+    msgs:[
+      {out:false,text:"Hi, got your number from a neighbour. Can you quote a colorbond fence along my side boundary? About 25m.",time:"Mon 9:14am"},
+      {out:true,text:"Hi Sandra! Happy to help — I can pop out for a free measure and quote. What suburb are you in?",time:"Mon 9:32am"},
+      {out:false,text:"Rockingham. Anytime this week works for me.",time:"Mon 9:45am"},
+    ]},
+  { id:1, initials:'MH', av:'av-b', name:'Mark H.', phone:'0412 891 002', status:'Quote sent', pill:'p-quote', job:'Frameless pool fence', unread:true,
+    msgs:[
+      {out:false,text:"Can I get a quote on a glass pool fence? About 18m.",time:"Tue 11:03am"},
+      {out:true,text:"Absolutely! Frameless or semi-frameless? Frameless is $320/m installed.",time:"Tue 11:20am"},
+      {out:false,text:"Frameless sounds great. Can you send a formal quote?",time:"Tue 2:10pm"},
+      {out:true,text:"Sent to your email just now. Let me know if you have any questions!",time:"Tue 2:25pm"},
+    ]},
+  { id:2, initials:'TW', av:'av-a', name:'Tina W.', phone:'0455 663 441', status:'Active job', pill:'p-active', job:'Retaining wall + fence', unread:false,
+    msgs:[
+      {out:true,text:"Morning Tina! Team will be on site by 7:30 AM tomorrow to start the retaining wall.",time:"Wed 4:00pm"},
+      {out:false,text:"Great, gate will be unlocked. Thanks!",time:"Wed 4:12pm"},
+    ]},
+  { id:3, initials:'BP', av:'av-c', name:'Ben P.', phone:'0488 112 934', status:'Follow-up', pill:'p-follow', job:'Timber picket fence', unread:true,
+    msgs:[
+      {out:false,text:"Just checking — did the quote come through? Haven't seen anything.",time:"Thu 8:44am"},
+      {out:true,text:"So sorry Ben, resending now! Timber picket, 30m, $4,850 fully installed.",time:"Thu 9:01am"},
+    ]},
+  { id:4, initials:'LC', av:'av-p', name:'Lisa C.', phone:'0421 774 009', status:'Completed', pill:'p-done', job:'Farm fencing', unread:false,
+    msgs:[
+      {out:true,text:"All done Lisa! The farm fencing is complete. Hope you're happy with it!",time:"Fri 3:30pm"},
+      {out:false,text:"Absolutely love it. Will leave a Google review today!",time:"Fri 4:05pm"},
+    ]},
+];
+
+const leads = [
+  {name:'Sandra R.',job:'Colorbond side fence',quote:'$3,200',status:'New',pill:'p-new',last:'Today'},
+  {name:'Mark H.',job:'Frameless pool fence',quote:'$5,760',status:'Quote sent',pill:'p-quote',last:'Yesterday'},
+  {name:'Tina W.',job:'Retaining wall + fence',quote:'$8,400',status:'Active job',pill:'p-active',last:'Wed'},
+  {name:'Ben P.',job:'Timber picket fence',quote:'$4,850',status:'Follow-up',pill:'p-follow',last:'Thu'},
+  {name:'Lisa C.',job:'Farm fencing',quote:'$12,300',status:'Completed',pill:'p-done',last:'Fri'},
+  {name:'James O.',job:'Pool fence (semi)',quote:'TBC',status:'New',pill:'p-new',last:'Today'},
+  {name:'Rach N.',job:'Front boundary fence',quote:'$2,650',status:'Quote sent',pill:'p-quote',last:'Mon'},
+];
+
+const templates = [
+  {tag:'New lead reply',pill:'p-new',body:"Hi [Name], thanks for reaching out! We offer free quotes — what suburb are you in and what type of fencing are you after? – [YourName]"},
+  {tag:'Quote follow-up',pill:'p-quote',body:"Hi [Name], just following up on the quote I sent. Happy to answer any questions or adjust the scope to suit your budget. – [YourName]"},
+  {tag:'Job confirmation',pill:'p-active',body:"Hi [Name], confirming your fencing job is booked for [Date] at [Time]. Please ensure access is available. See you then! – [YourName]"},
+  {tag:'Appointment reminder',pill:'p-active',body:"Hi [Name], just a reminder we're scheduled for your job tomorrow. Please ensure gate access is available. Any questions just reply! – [YourName]"},
+  {tag:'Job complete',pill:'p-done',body:"Hi [Name], your fencing job is all done! Thanks for choosing us. We'd really appreciate a Google review if you're happy — it helps heaps. – [YourName]"},
+  {tag:'Follow-up nudge',pill:'p-follow',body:"Hi [Name], just checking in to see if you had any questions about your quote. We have some availability coming up — happy to lock in a date! – [YourName]"},
+];
+
+const scheduled = [
+  {time:'Today 5:00 PM',to:'Ben P.',phone:'0488 112 934',msg:"Just checking in on your quote — any questions?"},
+  {time:'Fri 9:00 AM',to:'Mark H.',phone:'0412 891 002',msg:"Hi Mark, did you get a chance to look over the quote?"},
+];
+
+const tplTexts = {
+  quote:"Hi [Name], just following up on the quote I sent. Happy to answer any questions or adjust the scope to suit your budget. – [YourName]",
+  confirm:"Hi [Name], confirming your fencing job is booked for [Date] at [Time]. Please ensure access is available. See you then! – [YourName]",
+  remind:"Hi [Name], just a reminder your job is scheduled for tomorrow. Please ensure gate access is available. Any questions just reply! – [YourName]",
+  complete:"Hi [Name], your fencing job is all done! Thanks for choosing us — a Google review would be much appreciated. – [YourName]",
+  newlead:"Hi [Name], thanks for reaching out! We offer free quotes — what suburb are you in and what type of fencing are you after? – [YourName]",
+};
+
+let activeContact = 0;
+
+// ── Settings ──
+function loadSettings() {
+  const s = JSON.parse(localStorage.getItem('ff_settings') || '{}');
+  if(s.sid) document.getElementById('s-sid').value = s.sid;
+  if(s.token) document.getElementById('s-token').value = s.token;
+  if(s.from) document.getElementById('s-from').value = s.from;
+  if(s.server) document.getElementById('s-server').value = s.server;
+  if(s.bizname) document.getElementById('s-bizname').value = s.bizname;
+  if(s.yourname) document.getElementById('s-yourname').value = s.yourname;
+  updateStatusBanner(s);
+}
+
+function getSettings() {
+  return JSON.parse(localStorage.getItem('ff_settings') || '{}');
+}
+
+function saveSettings() {
+  const s = {
+    sid: document.getElementById('s-sid').value.trim(),
+    token: document.getElementById('s-token').value.trim(),
+    from: document.getElementById('s-from').value.trim(),
+    server: document.getElementById('s-server').value.trim(),
+    bizname: document.getElementById('s-bizname').value.trim(),
+    yourname: document.getElementById('s-yourname').value.trim(),
+  };
+  localStorage.setItem('ff_settings', JSON.stringify(s));
+  updateStatusBanner(s);
+  showToast('Settings saved!');
+}
+
+function updateStatusBanner(s) {
+  const el = document.getElementById('twilio-status-banner');
+  if(!el) return;
+  if(s.sid && s.token && s.from && s.server) {
+    el.innerHTML = '<div class="status-banner ok"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8l3.5 3.5L13 4"/></svg> Twilio connected — ready to send SMS</div>';
+  } else {
+    el.innerHTML = '<div class="status-banner warn"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 10.5v.5"/></svg> Twilio not configured — enter credentials below</div>';
+  }
+}
+
+// ── Send SMS via Render backend ──
+async function callTwilio(to, body) {
+  const s = getSettings();
+  if(!s.server) { showToast('Add your Render server URL in Settings first'); return false; }
+  const cleanTo = to.replace(/\s/g,'');
+  try {
+    const res = await fetch(s.server + '/send-sms', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ to: cleanTo, body, from: s.from, accountSid: s.sid, authToken: s.token })
+    });
+    const data = await res.json();
+    if(data.success) return true;
+    showToast('Send failed: ' + (data.error || 'Unknown error'));
+    return false;
+  } catch(e) {
+    showToast('Could not reach server. Check your Render URL.');
+    return false;
+  }
+}
+
+async function sendTestSMS() {
+  const num = document.getElementById('s-testnum').value.trim();
+  if(!num) { showToast('Enter a test number first'); return; }
+  showToast('Sending test...');
+  const ok = await callTwilio(num, 'FenceFlow test message — Twilio is connected!');
+  if(ok) showToast('Test SMS sent successfully!');
+}
+
+// ── Chat ──
+async function sendSMS() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if(!text) return;
+  const c = contacts[activeContact];
+  const btn = document.getElementById('send-btn');
+  btn.disabled = true;
+  btn.textContent = '...';
+  const ts = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  c.msgs.push({out:true, text, time:ts, status:'sending'});
+  input.value = '';
+  renderChat();
+  const ok = await callTwilio(c.phone, text);
+  c.msgs[c.msgs.length-1].status = ok ? 'sent' : 'error';
+  btn.disabled = false;
+  btn.textContent = 'Send';
+  renderChat();
+  buildChatSidebar();
+  buildDash();
+}
+
+function renderChat() {
+  const c = contacts[activeContact];
+  const el = document.getElementById('chat-messages');
+  el.innerHTML = c.msgs.map(m => `
+    <div class="msg-wrap">
+      <div class="msg ${m.out?'msg-out':'msg-in'}">${m.text}</div>
+      <div class="msg-time ${m.out?'right':''}">${m.time}</div>
+      ${m.out && m.status ? `<div class="msg-status ${m.status}">${m.status==='sending'?'Sending…':m.status==='sent'?'Sent via SMS':m.status==='error'?'Failed to send':''}</div>` : ''}
+    </div>`).join('');
+  el.scrollTop = el.scrollHeight;
+}
+
+function openChat(id) {
+  activeContact = id;
+  const c = contacts[id];
+  document.getElementById('ch-avatar').className = 'avatar ' + c.av;
+  document.getElementById('ch-avatar').textContent = c.initials;
+  document.getElementById('ch-name').textContent = c.name;
+  document.getElementById('ch-detail').textContent = c.phone + ' · ' + c.job;
+  document.getElementById('ch-pill').className = 'pill ' + c.pill;
+  document.getElementById('ch-pill').textContent = c.status;
+  c.unread = false;
+  renderChat();
+  buildChatSidebar();
+  updateUnreadBadge();
+}
+
+function buildChatSidebar() {
+  const el = document.getElementById('chat-sidebar-list');
+  el.innerHTML = contacts.map(c => `
+    <div class="conv-item${c.id===activeContact?' selected':''}" onclick="openChat(${c.id})">
+      <div class="avatar ${c.av}" style="width:34px;height:34px;font-size:12px">${c.initials}</div>
+      <div class="conv-body">
+        <div class="conv-name" style="font-size:13px">${c.name}</div>
+        <div class="conv-preview" style="font-size:12px">${c.msgs[c.msgs.length-1].text}</div>
+      </div>
+      ${c.unread?'<div class="unread-dot" style="margin-top:6px;flex-shrink:0"></div>':''}
+    </div>`).join('');
+}
+
+function buildTplChips() {
+  const el = document.getElementById('tpl-bar-chips');
+  el.innerHTML = templates.slice(0,4).map(t =>
+    `<button class="tpl-chip" onclick="insertTpl(${JSON.stringify(t.body)})">${t.tag}</button>`).join('');
+}
+
+function insertTpl(body) {
+  const s = getSettings();
+  const c = contacts[activeContact];
+  let txt = body.replace('[Name]', c.name.split(' ')[0]).replace('[YourName]', s.yourname || 'Dave');
+  document.getElementById('chat-input').value = txt;
+}
+
+// ── Dashboard ──
+function buildDash() {
+  const el = document.getElementById('dash-conv-list');
+  el.innerHTML = contacts.map(c => `
+    <div class="conv-item" onclick="goMessages(${c.id})">
+      <div class="avatar ${c.av}">${c.initials}</div>
+      <div class="conv-body">
+        <div class="conv-name">${c.name}</div>
+        <div class="conv-preview">${c.msgs[c.msgs.length-1].text}</div>
+      </div>
+      <div class="conv-meta">
+        <span>${c.msgs[c.msgs.length-1].time.split(' ')[0]}</span>
+        <span class="pill ${c.pill}">${c.status}</span>
+        ${c.unread?'<div class="unread-dot"></div>':''}
+      </div>
+    </div>`).join('');
+}
+
+function goMessages(id) {
+  const nav = document.querySelectorAll('.nav-item')[1];
+  showPanel('messages', nav);
+  openChat(id);
+}
+
+// ── Leads ──
+function buildLeads() {
+  const el = document.getElementById('leads-tbody');
+  el.innerHTML = leads.map(l => `
+    <tr>
+      <td><span class="lead-name">${l.name}</span></td>
+      <td>${l.job}</td>
+      <td>${l.quote}</td>
+      <td><span class="pill ${l.pill}">${l.status}</span></td>
+      <td style="color:var(--text-3)">${l.last}</td>
+      <td><span class="action-link" onclick="quickFollowUp('${l.name}','${l.quote}','${l.job}')">Follow up</span></td>
+    </tr>`).join('');
+}
+
+function quickFollowUp(name, quote, job) {
+  const s = getSettings();
+  document.getElementById('m-name').value = name;
+  document.getElementById('m-msg').value = `Hi ${name.split(' ')[0]}, just following up on your ${job} quote of ${quote}. Any questions? Happy to lock in a date! – ${s.yourname||'Dave'}`;
+  document.getElementById('compose-modal').classList.add('open');
+}
+
+// ── Templates ──
+function buildTplGrid() {
+  const el = document.getElementById('tpl-grid');
+  el.innerHTML = templates.map((t,i) => `
+    <div class="tpl-card">
+      <div class="tpl-tag"><span class="pill ${t.pill}">${t.tag}</span></div>
+      <div class="tpl-body">${t.body}</div>
+      <div class="tpl-actions">
+        <button class="btn btn-sm" onclick="copyTemplate(${i})">Copy</button>
+        <button class="btn btn-primary btn-sm" onclick="useTemplate(${i})">Use</button>
+      </div>
+    </div>`).join('');
+}
+
+function copyTemplate(i) {
+  const s = getSettings();
+  const txt = templates[i].body.replace('[YourName]', s.yourname||'Dave');
+  navigator.clipboard.writeText(txt).then(()=>showToast('Copied to clipboard!')).catch(()=>showToast('Copy failed — try long-press'));
+}
+
+function useTemplate(i) {
+  document.getElementById('m-msg').value = templates[i].body;
+  openCompose();
+}
+
+// ── Scheduled ──
+function buildScheduled() {
+  const el = document.getElementById('sched-list');
+  el.innerHTML = scheduled.map((s,i) => `
+    <div class="sched-item" id="si-${i}">
+      <div class="sched-time">${s.time}</div>
+      <div class="sched-body">
+        <div class="sched-to">${s.to} <span style="color:var(--text-3);font-size:12px">${s.phone}</span></div>
+        <div class="sched-msg">${s.msg}</div>
+      </div>
+      <button class="btn btn-sm" onclick="cancelScheduled(${i})">Cancel</button>
+    </div>`).join('');
+}
+
+function cancelScheduled(i) {
+  scheduled.splice(i,1);
+  buildScheduled();
+  document.getElementById('sched-badge').textContent = scheduled.length;
+  showToast('Scheduled message cancelled');
+}
+
+// ── Compose modal ──
+function openCompose() { document.getElementById('compose-modal').classList.add('open'); }
+function closeCompose() { document.getElementById('compose-modal').classList.remove('open'); }
+
+function applyModalTpl() {
+  const val = document.getElementById('m-tpl').value;
+  if(val) document.getElementById('m-msg').value = tplTexts[val] || '';
+}
+
+async function composeAndSend() {
+  const name = document.getElementById('m-name').value.trim();
+  const phone = document.getElementById('m-phone').value.trim();
+  const msg = document.getElementById('m-msg').value.trim();
+  const time = document.getElementById('m-time').value;
+  if(!phone || !msg) { showToast('Enter a phone number and message'); return; }
+  closeCompose();
+  if(time === 'Send now') {
+    showToast('Sending...');
+    const ok = await callTwilio(phone, msg);
+    if(ok) {
+      showToast('SMS sent to ' + (name||phone));
+      const s = getSettings();
+      contacts.push({
+        id: contacts.length, initials: name?name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase():'??',
+        av:'av-g', name: name||phone, phone, status:'New', pill:'p-new', job:'(New)', unread:false,
+        msgs:[{out:true,text:msg,time:'Now',status:'sent'}]
+      });
+      buildDash(); buildChatSidebar(); buildLeads();
+    }
+  } else {
+    scheduled.push({time, to:name||phone, phone, msg});
+    buildScheduled();
+    document.getElementById('sched-badge').textContent = scheduled.length;
+    showToast('Message scheduled!');
+  }
+  document.getElementById('m-name').value=''; document.getElementById('m-phone').value='';
+  document.getElementById('m-msg').value=''; document.getElementById('m-tpl').value='';
+}
+
+// ── Navigation ──
+function showPanel(name, el) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  el.classList.add('active');
+}
+
+// ── Utils ──
+function updateUnreadBadge() {
+  const count = contacts.filter(c=>c.unread).length;
+  const el = document.getElementById('unread-badge');
+  el.textContent = count;
+  el.style.display = count ? '' : 'none';
+  document.getElementById('stat-unread').textContent = count;
+}
+
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'), 2800);
+}
+
+function autoResize(el) {
+  el.style.height='auto';
+  el.style.height=Math.min(el.scrollHeight,100)+'px';
+}
+
+document.getElementById('compose-modal').addEventListener('click', function(e){ if(e.target===this) closeCompose(); });
+
+document.getElementById('today-date').textContent = new Date().toLocaleDateString('en-AU',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+
+// ── Init ──
+loadSettings();
+buildDash();
+buildChatSidebar();
+buildTplChips();
+openChat(0);
+buildLeads();
+buildTplGrid();
+buildScheduled();
+updateUnreadBadge();
+</script>
+</body>
+</html>
